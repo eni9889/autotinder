@@ -125,18 +125,18 @@
 }
 %end
 
-%hook TNDRDataManager
--(void)updateMatches {
-	#ifdef DEBUG 
-		%log; 
-	#endif
-	%orig;
+// %hook TNDRDataManager
+// -(void)updateMatches {
+// 	#ifdef DEBUG 
+// 		%log; 
+// 	#endif
+// 	%orig;
 
-	NSArray *newMatches = (NSArray *)[[self changedMatchesFetchedResultsController] fetchedObjects];
-	for (TNDRMatch *match in newMatches) {
-		if (match.messages.count <= 0) {
-			[match sendMessage:@"Hi, how's your day going?" completion:nil];
-		}
-	}
-}
-%end
+// 	NSArray *newMatches = (NSArray *)[[self changedMatchesFetchedResultsController] fetchedObjects];
+// 	for (TNDRMatch *match in newMatches) {
+// 		if (match.messages.count <= 0) {
+// 			[match sendMessage:@"Hi, how's your day going?" completion:nil];
+// 		}
+// 	}
+// }
+// %end
