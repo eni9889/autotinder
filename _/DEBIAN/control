@@ -1,0 +1,10 @@
+Package: com.unlimapps.autotinder
+Name: InstaLove - Auto Love Finder
+Depends: mobilesubstrate
+Architecture: iphoneos-arm
+Description: Tired of having to constantly swipe right on Tinder? Well this little tweak takes care of all that for you. Just flip the switch and it will swipe right for you :)
+Maintainer: Enea Gjoka
+Author: Enea Gjoka
+Section: Tweaks
+Version: 0.0.2-5
+Installed-Size: 72

@@ -1,0 +1,202 @@
+#import <UIKit/UIKit.h>
+#import <objc/runtime.h>
+
+//Headers
+@interface TNDRSlidingPagedViewController : UIViewController
+@end
+
+@interface TNDRRecommendationViewController : UIViewController
+@end
+
+@interface TNDRMatch : NSObject
+-(NSSet *)messages;
+@end
+
+@interface TNDRMenuViewController : UIViewController
+@end
+
+@interface TNDRDataManager : NSObject
+@end
+
+//End Headers
+
+@interface NSObject (Tinder)
+-(void)sendMessage:(id)message completion:(id)completion;
+-(id)recommendationsViewController;
+-(id)menuViewController;
+-(id)noRecommendationsView;
+-(unsigned)numberOfRecommendationsInSection:(int)section;
+-(id)changedMatchesFetchedResultsController;
+-(id)fetchedObjects;
+@end
+
+@interface UIViewController (startTimer) 
+-(void)likeTapped:(id)sender;
+@end
+
+@implementation UIViewController (startTimer)
+
+-(void)likeTapped:(id)sender{
+	NSLog(@"%s", __FUNCTION__);
+}
+
+-(void)tapLikeButton:(id)sender {
+
+	UIViewController *controller = [self recommendationsViewController];
+
+	if([controller numberOfRecommendationsInSection:0] > 0 &&  [(UISwitch *)[[controller view] viewWithTag:666678] isOn]) {
+		[controller likeTapped:nil];
+	}
+
+	[self startTimer];
+}
+
+-(void)startTimer {
+
+	UIViewController *menuController = [self menuViewController];
+	UIStepper *stepper = (UIStepper *)[(UIView*)[menuController view] viewWithTag:12983719]; 
+	double value = [stepper value];
+
+	NSTimer *timer = [NSTimer 	scheduledTimerWithTimeInterval:value 
+    							target:self 
+    							selector:@selector(tapLikeButton:)
+                                userInfo:nil 
+                                repeats:NO];
+	[[NSRunLoop currentRunLoop] addTimer:timer forMode:NSRunLoopCommonModes];
+
+
+}
+
+-(void)stepperValueChanged:(UIStepper *)sender {
+    double value = [(UIStepper *)sender value];
+    
+    UILabel *label = (UILabel *)[(UIView*)[self view] viewWithTag:12312];
+    [label setText:[NSString stringWithFormat:@"%d", (int)value]];
+}
+@end
+
+%hook TNDRSlidingPagedViewController
+- (void)viewDidLoad {
+	%log;
+	%orig;
+
+	[[UIApplication sharedApplication] setIdleTimerDisabled: YES];
+    [self startTimer];
+} 
+%end
+
+%hook TNDRRecommendationViewController
+
+-(void)presentNewMatch:(id)match {
+	%log;
+	%orig;	
+}
+
+-(unsigned)numberOfRecommendationsInSection:(int)section {
+	%log;
+	return %orig(section);	
+}
+
+- (void)viewDidLoad {
+	%log;
+	%orig;
+	
+    CGRect viewFrame = [((UIView *)[self view]) frame];    
+    UISwitch *mySwitch = [[UISwitch alloc] initWithFrame:CGRectMake(0,0,0,0)];
+    mySwitch.frame = CGRectMake((viewFrame.size.width - mySwitch.frame.size.width)/2.0, (viewFrame.size.height - mySwitch.frame.size.height)/2.0 - 50.0f, mySwitch.frame.size.width, mySwitch.frame.size.height);
+	mySwitch.tag = 666678;
+	mySwitch.alpha = 0.3f;
+
+    [mySwitch addTarget:self action:nil forControlEvents:UIControlEventValueChanged];
+    [(UIView*)[self view] addSubview:mySwitch];
+} 
+
+- (void)viewDidAppear:(BOOL)animated {
+	%log;
+	%orig;
+}
+
+-(void)likeTapped:(id)sender {
+	%orig;
+}
+%end
+
+%hook TNDRMenuViewController
+- (void)viewDidLoad {
+	%log;
+	%orig;
+
+	UIStepper *stepper = [[UIStepper alloc] initWithFrame:CGRectMake(20,self.view.frame.size.height - 50.0f,94,29)];
+	stepper.tag = 12983719;
+	stepper.maximumValue = 10;
+    stepper.minimumValue = 0;
+    stepper.value = 2;
+    [(UIView*)[self view] addSubview:stepper];
+
+    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(20 + 94 + 10,self.view.frame.size.height - 50.0f,30,29)];
+    label.tag = 12312;
+    [stepper addTarget:self action:@selector(stepperValueChanged:) forControlEvents:UIControlEventValueChanged];
+    [label setText:[NSString stringWithFormat:@"%d", (int)stepper.value]];
+    [(UIView*)[self view] addSubview:label];
+}
+%end
+
+%hook TNDRDataManager
+-(void)updateMatches {
+	%log;
+	%orig;
+
+	NSArray *newMatches = (NSArray *)[[self changedMatchesFetchedResultsController] fetchedObjects];
+	for (TNDRMatch *match in newMatches) {
+		if (match.messages.count <= 0) {
+			[match sendMessage:@"Hi, how's your day going?" completion:nil];
+		}
+	}
+}
+%end
+
+%hook TNDRNotificationView
+-(void)notifyWithMomentShareFailedMessage {
+	%log;
+	%orig;
+}
+-(void)notifyWithNewLike:(id)newLike {
+	%log;
+	%orig;
+}
+-(void)notifyWithNewMatch:(id)newMatch {
+	%log;
+	%orig;
+}
+%end
+
+%hook TNDRNotificationWindow
+-(void)notifyWithNewMatch:(TNDRMatch *)newMatch {
+	%log;
+	%orig;
+	NSLog(@"Got new match: %@", newMatch);
+	[newMatch sendMessage:@"Hi, How's your day going?" completion:nil];
+}
+%end
+
+%hook TNDRAnalyticsTracker
+-(void)trackMatchNewMatch:(id)match fromPush:(BOOL)push {
+	%log;
+	%orig;
+}
+%end
+
+%hook TNDRMatch
+-(void)sendMessage:(id)message completion:(id)completion {
+	%log;
+	%orig;
+	NSLog(@"Sent message: %@", message);	
+}
+%end
+
+%hook TNDRAddFriendsViewController
+-(void)matchRequestAlert:(id)alert {
+	%log;
+	%orig;	
+}
+%end

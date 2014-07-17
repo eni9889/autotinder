@@ -6,3 +6,6 @@
 #
 # Pods/
 
+*.deb
+*.o
+obj/*
