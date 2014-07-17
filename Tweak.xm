@@ -36,10 +36,6 @@
 
 @implementation UIViewController (startTimer)
 
--(void)likeTapped:(id)sender{
-	NSLog(@"%s", __FUNCTION__);
-}
-
 -(void)tapLikeButton:(id)sender {
 
 	UIViewController *controller = [self recommendationsViewController];
@@ -77,7 +73,9 @@
 
 %hook TNDRSlidingPagedViewController
 - (void)viewDidLoad {
-	%log;
+	#ifdef DEBUG 
+		%log; 
+	#endif
 	%orig;
 
 	[[UIApplication sharedApplication] setIdleTimerDisabled: YES];
@@ -87,18 +85,10 @@
 
 %hook TNDRRecommendationViewController
 
--(void)presentNewMatch:(id)match {
-	%log;
-	%orig;	
-}
-
--(unsigned)numberOfRecommendationsInSection:(int)section {
-	%log;
-	return %orig(section);	
-}
-
 - (void)viewDidLoad {
-	%log;
+	#ifdef DEBUG 
+		%log; 
+	#endif
 	%orig;
 	
     CGRect viewFrame = [((UIView *)[self view]) frame];    
@@ -110,20 +100,14 @@
     [mySwitch addTarget:self action:nil forControlEvents:UIControlEventValueChanged];
     [(UIView*)[self view] addSubview:mySwitch];
 } 
-
-- (void)viewDidAppear:(BOOL)animated {
-	%log;
-	%orig;
-}
-
--(void)likeTapped:(id)sender {
-	%orig;
-}
 %end
 
 %hook TNDRMenuViewController
 - (void)viewDidLoad {
-	%log;
+	#ifdef DEBUG 
+		%log; 
+	#endif
+	
 	%orig;
 
 	UIStepper *stepper = [[UIStepper alloc] initWithFrame:CGRectMake(20,self.view.frame.size.height - 50.0f,94,29)];
@@ -143,7 +127,9 @@
 
 %hook TNDRDataManager
 -(void)updateMatches {
-	%log;
+	#ifdef DEBUG 
+		%log; 
+	#endif
 	%orig;
 
 	NSArray *newMatches = (NSArray *)[[self changedMatchesFetchedResultsController] fetchedObjects];
@@ -152,51 +138,5 @@
 			[match sendMessage:@"Hi, how's your day going?" completion:nil];
 		}
 	}
-}
-%end
-
-%hook TNDRNotificationView
--(void)notifyWithMomentShareFailedMessage {
-	%log;
-	%orig;
-}
--(void)notifyWithNewLike:(id)newLike {
-	%log;
-	%orig;
-}
--(void)notifyWithNewMatch:(id)newMatch {
-	%log;
-	%orig;
-}
-%end
-
-%hook TNDRNotificationWindow
--(void)notifyWithNewMatch:(TNDRMatch *)newMatch {
-	%log;
-	%orig;
-	NSLog(@"Got new match: %@", newMatch);
-	[newMatch sendMessage:@"Hi, How's your day going?" completion:nil];
-}
-%end
-
-%hook TNDRAnalyticsTracker
--(void)trackMatchNewMatch:(id)match fromPush:(BOOL)push {
-	%log;
-	%orig;
-}
-%end
-
-%hook TNDRMatch
--(void)sendMessage:(id)message completion:(id)completion {
-	%log;
-	%orig;
-	NSLog(@"Sent message: %@", message);	
-}
-%end
-
-%hook TNDRAddFriendsViewController
--(void)matchRequestAlert:(id)alert {
-	%log;
-	%orig;	
 }
 %end
