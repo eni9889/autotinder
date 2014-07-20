@@ -28,10 +28,10 @@
 -(unsigned)numberOfRecommendationsInSection:(int)section;
 -(id)changedMatchesFetchedResultsController;
 -(id)fetchedObjects;
+-(void)likeTapped:(id)sender;
 @end
 
 @interface UIViewController (startTimer) 
--(void)likeTapped:(id)sender;
 @end
 
 @implementation UIViewController (startTimer)
