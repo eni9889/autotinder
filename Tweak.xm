@@ -25,10 +25,10 @@
 -(id)recommendationsViewController;
 -(id)menuViewController;
 -(id)noRecommendationsView;
--(unsigned)numberOfRecommendationsInSection:(int)section;
+-(unsigned)numberOfCardsInStack;
 -(id)changedMatchesFetchedResultsController;
 -(id)fetchedObjects;
--(void)likeTapped:(id)sender;
+-(void)likeButtonTapped:(id)sender;
 @end
 
 @interface UIViewController (startTimer) 
@@ -40,8 +40,8 @@
 
 	UIViewController *controller = [self recommendationsViewController];
 
-	if([controller numberOfRecommendationsInSection:0] > 0 &&  [(UISwitch *)[[controller view] viewWithTag:666678] isOn]) {
-		[controller likeTapped:nil];
+	if([controller numberOfCardsInStack] > 0 &&  [(UISwitch *)[[controller view] viewWithTag:666678] isOn]) {
+		[controller likeButtonTapped:nil];
 	}
 
 	[self startTimer];
