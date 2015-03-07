@@ -13,7 +13,15 @@
 @end
 
 @interface TNDRMenuViewController : UIViewController
+@property UITableView *tableView;
+-(void)segCtrlValueChanged:(UISegmentedControl *)sender;
 @end
+
+@interface TNDRMenuCell : UITableViewCell
+@property UIImageView *iconImageView;
+@property UILabel *infoLabel;
+@property UILabel *titleLabel;
+@end;
 
 @interface TNDRDataManager : NSObject
 @end
@@ -34,6 +42,9 @@
 @interface UIViewController (startTimer) 
 @end
 
+NSInteger numOfRows;
+NSInteger autoLikeInterval = 2;
+
 @implementation UIViewController (startTimer)
 
 -(void)tapLikeButton:(id)sender {
@@ -49,11 +60,11 @@
 
 -(void)startTimer {
 
-	UIViewController *menuController = [self menuViewController];
-	UIStepper *stepper = (UIStepper *)[(UIView*)[menuController view] viewWithTag:12983719]; 
-	double value = [stepper value];
+	//UIViewController *menuController = [self menuViewController];
+	//UIStepper *stepper = (UIStepper *)[(UIView*)[menuController view] viewWithTag:12983719]; 
+	//double value = autoLikeInterval;
 
-	NSTimer *timer = [NSTimer 	scheduledTimerWithTimeInterval:value 
+	NSTimer *timer = [NSTimer 	scheduledTimerWithTimeInterval:autoLikeInterval 
     							target:self 
     							selector:@selector(tapLikeButton:)
                                 userInfo:nil 
@@ -69,6 +80,25 @@
     UILabel *label = (UILabel *)[(UIView*)[self view] viewWithTag:12312];
     [label setText:[NSString stringWithFormat:@"%d", (int)value]];
 }
+@end
+
+@implementation TNDRMenuViewController
+
+-(void)segCtrlValueChanged:(UISegmentedControl *)sender {
+    //NSInteger decOrInc = sender.selectedSegmentIndex;
+    //sender.selectedSegmentIndex = -1;
+    /*autoLikeInterval = decOrInc == 0 ? autoLikeInterval - 1 : autoLikeInterval + 1;
+    if (autoLikeInterval < 1) {
+    	autoLikeInterval = 1;
+    }
+    if (autoLikeInterval > 10) {
+    	autoLikeInterval = 10;
+    }
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:numOfRows - 1 inSection:0];
+	TNDRMenuCell *cell = (TNDRMenuCell *)[self.tableView cellForRowAtIndexPath:indexPath];
+    [cell.infoLabel setText:[NSString stringWithFormat:@"%d", autoLikeInterval]];*/
+}
+
 @end
 
 %hook TNDRSlidingPagedViewController
@@ -109,7 +139,7 @@
 	#endif
 	
 	%orig;
-
+/*
 	UIStepper *stepper = [[UIStepper alloc] initWithFrame:CGRectMake(20,self.view.frame.size.height - 50.0f,94,29)];
 	stepper.tag = 12983719;
 	stepper.maximumValue = 10;
@@ -121,8 +151,60 @@
     label.tag = 12312;
     [stepper addTarget:self action:@selector(stepperValueChanged:) forControlEvents:UIControlEventValueChanged];
     [label setText:[NSString stringWithFormat:@"%d", (int)stepper.value]];
-    [(UIView*)[self view] addSubview:label];
+    [(UIView*)[self view] addSubview:label];*/
 }
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
+    numOfRows = %orig;
+    numOfRows++;
+    return numOfRows;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+	CGFloat height = %orig;
+	return height - 13;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+	if (indexPath.row < numOfRows - 1) {
+		%orig;
+	} else {
+	    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+	}
+}
+
+- (TNDRMenuCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    if (indexPath.row != numOfRows - 1) {
+    	return %orig;
+    } else {
+    	NSIndexPath *indPth = [NSIndexPath indexPathForRow:indexPath.row - 1 inSection:indexPath.section];
+    	TNDRMenuCell *cell = %orig(tableView, indPth);
+    	cell.iconImageView.image = nil;
+    	UISegmentedControl *segCtrl = [[UISegmentedControl alloc] initWithItems:@[@"-", @"+"]]; 
+    	segCtrl.frame = CGRectMake(5, 13, 48, 24);
+		[segCtrl addTarget:self action:@selector(segCtrlValueChanged:) forControlEvents:UIControlEventValueChanged];
+    	[cell.contentView addSubview:segCtrl];
+
+    	cell.infoLabel.text = [NSString stringWithFormat:@"%d", (int)autoLikeInterval];
+    	cell.titleLabel.text = @"Auto-like interval";
+/*		CGRect cellFrame = cell.frame;
+
+		UIStepper *stepper = [[UIStepper alloc] initWithFrame:CGRectMake(20,self.view.frame.size.height - 50.0f,94,29)];
+		stepper.tag = 12983719;
+		stepper.maximumValue = 10;
+		stepper.minimumValue = 0;
+		stepper.value = 2;
+		[(UIView*)[self view] addSubview:stepper];
+
+		UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(20 + 94 + 10,self.view.frame.size.height - 50.0f,30,29)];
+		label.tag = 12312;
+		[stepper addTarget:self action:@selector(stepperValueChanged:) forControlEvents:UIControlEventValueChanged];
+		[label setText:[NSString stringWithFormat:@"%d", (int)stepper.value]];
+		[(UIView*)[self view] addSubview:label];*/
+        return cell;
+    }
+}
+
 %end
 
 // %hook TNDRDataManager
