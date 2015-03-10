@@ -1,8 +1,11 @@
-THEOS_DEVICE_IP=192.168.1.148
-THEOS_DEVICE_PORT=22
-TARGET = iphone:clang:latest:6.0
+export TARGET=iphone:clang:latest:6.0
+export THEOS_DEVICE_PORT=22
+export GO_EASY_ON_ME=1
+export ARCHS = armv7 armv7s arm64
 
 include theos/makefiles/common.mk
+
+THEOS_BUILD_DIR = Packages
 
 TWEAK_NAME = autotinder
 autotinder_FILES = Tweak.xm
